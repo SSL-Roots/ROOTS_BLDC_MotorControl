@@ -310,14 +310,17 @@ static void  configHSPWM(void){
     ConfigHSPWM1( pwmcon_conf, iocon_conf, phase1_conf, trgcon_donf, sphase1_conf );
     ConfigHSPWMFault1( fclcon_conf );
     ConfigHSPWMLeb1( lebcon_conf );
+    SetHSPWMDeadTime1( dtr_conf, aldtr_conf );
 
     ConfigHSPWM2( pwmcon_conf, iocon_conf, phase1_conf, trgcon_donf, sphase1_conf );
     ConfigHSPWMFault2( fclcon_conf );
     ConfigHSPWMLeb2( lebcon_conf );
+    SetHSPWMDeadTime2( dtr_conf, aldtr_conf );
 
     ConfigHSPWM3( pwmcon_conf, iocon_conf, phase1_conf, trgcon_donf, sphase1_conf );
     ConfigHSPWMFault3( fclcon_conf );
     ConfigHSPWMLeb3( lebcon_conf );
+    SetHSPWMDeadTime3( dtr_conf, aldtr_conf );
 
     OpenHSPWM( ptcon_conf, ptcon2_conf, ptper_conf, sevtcmp_conf ); //open HSPWM module
 }

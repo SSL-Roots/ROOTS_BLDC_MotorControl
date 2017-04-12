@@ -15,8 +15,8 @@ unsigned int pwmcon_conf    =   PWM_FLT_INT_DIS |       //fault interrupt
                                 PWM_TRG_INT_DIS |       //Trigger interrupt
                                 PWM_TB_MODE_PH |        //中央揃え（三角波）のときはMODE_PH(ITB=1)
                                 PWM_D_CYLE_DC |         //PDCxを使うときはCYCLE_DC
-                                PWM_DT_DIS |            //dead time なし
-                                PWM_HS_LL_DTCMP_0 |     //デッドタイムの極性設定
+                                PWM_DT_POS |            //dead time：positive dead time
+                                PWM_HS_LL_DTCMP_0 |     //デッドタイムの極性設定 DTC=11のときのみ有効
                                 PWM_PRI_TB |
                                 PWM_CENTER_ALIGN_EN |   //三角波モード
                                 PWM_EXT_RES_DIS |       //外部入力（電流制限など）を使用しない
@@ -60,6 +60,10 @@ unsigned int ptcon2_conf    =   PWM_INPUT_CLK_DIV1;
 
 unsigned int ptper_conf     =   1024;
 unsigned int sevtcmp_conf   =   512;
+
+////////////////////////////////////////////////////////////////////////////////
+unsigned int dtr_conf       = 0;
+unsigned int aldtr_conf     = 20;
 
 #endif	/* HSPWM_CONFIG_H */
 
