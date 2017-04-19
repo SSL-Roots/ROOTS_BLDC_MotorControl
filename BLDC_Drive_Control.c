@@ -16,9 +16,13 @@ static int CL_count = 0;
 static int CL_fault_Flag = 0;
 //モータ駆動関係
 static unsigned int getHallPosition(void);
-#define HALL1   PORTAbits.RA4
-#define HALL2   PORTBbits.RB1
-#define HALL3   PORTBbits.RB0
+//#define HALL1   PORTAbits.RA4
+//#define HALL2   PORTBbits.RB1
+//#define HALL3   PORTBbits.RB0
+#define HALL1   PORTBbits.RB4
+#define HALL2   PORTAbits.RA4
+#define HALL3   PORTBbits.RB5
+
 
 #define HALL_LOW    0
 #define HALL_HIGH   1
@@ -269,18 +273,20 @@ static float getPID(float Kp, float Ki, float Kd, float reffernce, float measuer
 //**************************************************************
 //各種モジュールの設定
 static void  configHallSensorPort(void){
-    TRISAbits.TRISA4    = 1;    //hall 1
+    TRISBbits.TRISB4    = 1;    //hall 1
+    CNPUBbits.CNPUB4    = 1;
+
+    TRISAbits.TRISA4    = 1;    //hall 2
     CNPUAbits.CNPUA4    = 1;
 
-    TRISBbits.TRISB1    = 1;    //hall 2
-    CNPUBbits.CNPUB1    = 1;
-
-    TRISBbits.TRISB0    = 1;    //hall 3
-    CNPUBbits.CNPUB0    = 1;
+    TRISBbits.TRISB5    = 1;    //hall 3
+    CNPUBbits.CNPUB5    = 1;
 }
 
 static void configCurrentFault(void){
     IEC5bits.PWM1IE = 1;
+//    TRISBbits.TRISB3    = 1;    //RB3->FLT1
+//    iPPSInput( IN_FN_PPS_FLT1, IN_PIN_PPS_RP35 );
     TRISBbits.TRISB3    = 1;    //RB3->FLT1
     iPPSInput( IN_FN_PPS_FLT1, IN_PIN_PPS_RP35 );
 }
@@ -298,14 +304,14 @@ static  void configTimer3(void){
 }
 
 static void  configQEI(void){
-    //channel A: RB4/RP36
-    //channel B: RB5/RP37
+    //channel A: RB6/RP38
+    //channel B: RB7/RP39
 
-    TRISBbits.TRISB4    = 1;    //channel A -> input
-    TRISBbits.TRISB5    = 1;    //channel B -> input
+    TRISBbits.TRISB6    = 1;    //channel A -> input
+    TRISBbits.TRISB7    = 1;    //channel B -> input
 
-    iPPSInput(IN_FN_PPS_QEA1, IN_PIN_PPS_RP36);
-    iPPSInput(IN_FN_PPS_QEB1, IN_PIN_PPS_RP37);
+    iPPSInput(IN_FN_PPS_QEA1, IN_PIN_PPS_RP38);
+    iPPSInput(IN_FN_PPS_QEB1, IN_PIN_PPS_RP39);
 
     QEI1CONbits.QEISIDL = 1;        //アイドル時停止
     QEI1CONbits.PIMOD   = 0b110;    //速度計測モードでは無視される
