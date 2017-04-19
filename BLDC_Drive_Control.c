@@ -7,9 +7,13 @@
 #include "hspwm_config.h"
 //設定関数
 static void configHallSensorPort(void);
+static void configCurrentFault(void);
 static void configHSPWM(void);
 static void configQEI(void);
 static void configTimer2(void);
+static void configTimer3(void);
+static int CL_count = 0;
+static int CL_fault_Flag = 0;
 //モータ駆動関係
 static unsigned int getHallPosition(void);
 #define HALL1   PORTAbits.RA4
@@ -48,6 +52,7 @@ static int count = 0;
 //**************************************************************
 extern void configBLDCSystem(void){
     configHallSensorPort();
+    configCurrentFault();
     configQEI();
     configTimer2();
     configHSPWM();
@@ -93,16 +98,22 @@ void __attribute__((  interrupt, auto_psv))  _T2Interrupt(void){
     IFS0bits.T2IF   = 0;
     velocity    = VEL1CNT;
     count   += velocity;
-    if( count>9083 ){
-        LATAbits.LATA1  = 1;
-    }else{
-        LATAbits.LATA1  = 0;
-    }
+//    if( count>9083 ){
+//        LATAbits.LATA1  = 1;
+//    }else{
+//        LATAbits.LATA1  = 0;
+//    }
 
-    LATAbits.LATA3  = ~LATAbits.LATA3;
+    
 //    setMeasuredAngularVelocity( getAngularVelocity( velocity ) );
     setMeasuredAngularVelocity((float)velocity);
     driveBLDCSystem();
+}
+
+void __attribute__((  interrupt, auto_psv))  _PWM1Interrupt(void){
+    IFS5bits.PWM1IF = 0;
+    PWMCON1bits.FLTSTAT = 0;
+    
 }
 
 //**************************************************************
@@ -268,10 +279,22 @@ static void  configHallSensorPort(void){
     CNPUBbits.CNPUB0    = 1;
 }
 
+static void configCurrentFault(void){
+    IEC5bits.PWM1IE = 1;
+    TRISBbits.TRISB3    = 1;    //RB3->FLT1
+    iPPSInput( IN_FN_PPS_FLT1, IN_PIN_PPS_RP35 );
+}
+
 static  void configTimer2(void){
     //Config Timer2
     OpenTimer2(T2_ON & T2_GATE_OFF & T2_PS_1_8 & T2_32BIT_MODE_OFF & T2_SOURCE_INT, 2500);  //2kHz
     ConfigIntTimer2(T2_INT_PRIOR_3 & T2_INT_ON);
+}
+
+static  void configTimer3(void){
+    //Config Timer3
+    OpenTimer3(T3_OFF & T3_GATE_OFF & T3_PS_1_256 & T3_SOURCE_INT, 62500);  //400 ms
+    ConfigIntTimer3(T3_INT_PRIOR_3 & T3_INT_ON);
 }
 
 static void  configQEI(void){
@@ -311,6 +334,7 @@ static void  configHSPWM(void){
     ConfigHSPWMFault1( fclcon_conf );
     ConfigHSPWMLeb1( lebcon_conf );
     SetHSPWMDeadTime1( dtr_conf, aldtr_conf );
+    PWMCON1bits.FLTIEN  = 1;    //過電流制限をPWM1が代表で割込み
 
     ConfigHSPWM2( pwmcon_conf, iocon_conf, phase1_conf, trgcon_donf, sphase1_conf );
     ConfigHSPWMFault2( fclcon_conf );
