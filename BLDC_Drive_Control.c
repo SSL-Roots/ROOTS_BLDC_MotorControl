@@ -5,6 +5,7 @@
 
 #include "BLDC_Drive_Control.h"
 #include "hspwm_config.h"
+#include "MotorDriverStatus.h"
 //設定関数
 static void configHallSensorPort(void);
 static void configCurrentFault(void);
@@ -119,6 +120,19 @@ void __attribute__((  interrupt, auto_psv))  _PWM1Interrupt(void){
     PWMCON1bits.FLTSTAT = 0;
     
 }
+
+
+//**************************************************************
+//アクセス関数
+short getWheelAngularVelocity(void){
+    return (short)-1*mes_omega * SMP_RATE * ENCODER_RESOLUTION / GEAR_RATIO;    //車輪回転数 = パルス数*サンプリング周波数 * エンコーダ分解能 / ギヤ比
+}
+
+unsigned char getMotorDriverStatus(void){
+    return getMDStatus();
+}
+
+
 
 //**************************************************************
 //BLDC駆動

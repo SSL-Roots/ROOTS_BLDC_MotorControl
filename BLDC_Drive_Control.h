@@ -13,8 +13,11 @@ void driveBLDCSystem(void);  //モータを回す
 
 void setReffernceAngularVelocity(float omega ); //rad/s, 車輪CWが正
 void setMeasuredAngularVelocity( float omega );    //rad/s，車輪の回転数をセット
-void setPIDGain(float Kp, float Ki, float Kd);
+void setPIDGain(float Kp, float Ki, float Kd);      //制御自体はパルス数で実行
 void setRotationDirection(int direction);
+
+short getWheelAngularVelocity(void);
+unsigned char getMotorDriverStatus(void);
 
 
 #endif	/* BLDC_DRIVE_CONTROL_H */
