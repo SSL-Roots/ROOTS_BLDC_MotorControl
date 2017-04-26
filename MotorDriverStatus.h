@@ -10,10 +10,10 @@
 
 unsigned char getMDStatus(void);
 
-void stateDrivingFlag(unsigned char flag);
-void stateTimeoutFlag(unsigned char flag);
-void stateFullSpeedFlag(unsigned char flag);
-void stateOCFlag(unsigned char flag);
+void stateFlagDriving(unsigned char flag);
+void stateFlagTimeout(unsigned char flag);
+void stateFlagFullSpeed(unsigned char flag);
+void stateFlagOC(unsigned char flag);
 
 
 /**************************************

@@ -82,6 +82,7 @@ extern void driveBLDCSystem(void){
         duty    = -1*duty;
     }
     driveTreePhaseInverter( getHallPosition(), duty, rotate );
+    stateFlagDriving( 1 );
 //    driveTreePhaseInverter(getHallPosition(), 50, rotate);
 }
 
@@ -118,7 +119,8 @@ void __attribute__((  interrupt, auto_psv))  _T2Interrupt(void){
 void __attribute__((  interrupt, auto_psv))  _PWM1Interrupt(void){
     IFS5bits.PWM1IF = 0;
     PWMCON1bits.FLTSTAT = 0;
-    
+    stateFlagOC(1);
+    stateFlagDriving(0);
 }
 
 
@@ -268,10 +270,14 @@ static float getPID(float Kp, float Ki, float Kd, float reffernce, float measuer
     output[1] = Ki*error[0] + Kp*error[1]+Kd*error[2];
     output[0] += output[1];
 
-    if(output[0]>1.0){
+    if(output[0]>=1.0){
         output[0]=1.0;
+        stateFlagFullSpeed(1);
     }else if(output[0]<-1.0){
         output[0]=-1.0;
+        stateFlagFullSpeed(1);
+    }else{
+        stateFlagFullSpeed(0);
     }
 
     error[2]    = error[1];
