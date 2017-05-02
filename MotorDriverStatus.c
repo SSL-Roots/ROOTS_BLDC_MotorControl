@@ -31,7 +31,7 @@ static void clearOC(void){
     driver_status.status.OC    = 0;
 }
 
-void stateDrivingFlag(unsigned char flag){
+void stateFlagDriving(unsigned char flag){
     if(flag == 0){
         clearDriving();
     }else if(flag == 1){
@@ -39,7 +39,7 @@ void stateDrivingFlag(unsigned char flag){
     }
 }
 
-void stateTimeoutFlag(unsigned char flag){
+void stateFlagTimeout(unsigned char flag){
     if(flag == 0){
         clearTimeout();
     }else if(flag == 1){
@@ -47,7 +47,7 @@ void stateTimeoutFlag(unsigned char flag){
     }
 }
 
-void stateFullSpeedFlag(unsigned char flag){
+void stateFlagFullSpeed(unsigned char flag){
     if(flag == 0){
         clearFullSpeed();
     }else if(flag == 1){
@@ -55,7 +55,7 @@ void stateFullSpeedFlag(unsigned char flag){
     }
 }
 
-void stateOCFlag(unsigned char flag){
+void stateFlagOC(unsigned char flag){
     if(flag == 0){
         clearOC();
     }else if(flag == 1){
