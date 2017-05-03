@@ -47,9 +47,10 @@ unsigned int fclcon_conf    =   PWM_IND_FLT_DIS  |       //普通のfaultモー�
                                 PWM_HL_FLTDAT_LATCH |            //fault mode:latched
                                 PWM_FLT_SOURCE_LOW  |   //active low
                                 PWM_FLT_FLT1;           //source -> flt1
-//unsigned int fclcon_conf    =   PWM_IND_FLT_DIS  |       //普通のfaultモード
-//                                PWM_CL_DIS  |           //電流制限モードオフ
-//                                PWM_FLT_DIS;
+//MD_ver4用
+unsigned int fclcon_conf_md4    =   PWM_IND_FLT_DIS  |       //普通のfaultモード
+                                PWM_CL_DIS  |           //電流制限モードオフ
+                                PWM_FLT_DIS;
 
 ////////////////////////////////////////////////////////////////////////////////
 unsigned int lebcon_conf    =   0;                      //LEB：スイッチングノイズで電流制限がかからないようにスイッチング時は取り込まないようにする設定

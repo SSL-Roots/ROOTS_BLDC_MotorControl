@@ -6,6 +6,11 @@
 #include "BLDC_Drive_Control.h"
 #include "hspwm_config.h"
 #include "MotorDriverStatus.h"
+
+#define MD_ver4
+//#define MD_ver5
+
+
 //設定関数
 static void configHallSensorPort(void);
 static void configCurrentFault(void);
@@ -17,13 +22,17 @@ static int CL_count = 0;
 static int CL_fault_Flag = 0;
 //モータ駆動関係
 static unsigned int getHallPosition(void);
-//#define HALL1   PORTAbits.RA4
-//#define HALL2   PORTBbits.RB1
-//#define HALL3   PORTBbits.RB0
+#ifdef MD_ver4
+#define HALL1   PORTAbits.RA4
+#define HALL2   PORTBbits.RB1
+#define HALL3   PORTBbits.RB0
+#endif
+
+#ifdef MD_ver5
 #define HALL1   PORTBbits.RB4
 #define HALL2   PORTAbits.RA4
 #define HALL3   PORTBbits.RB5
-
+#endif
 
 #define HALL_LOW    0
 #define HALL_HIGH   1
@@ -57,7 +66,9 @@ static int count = 0;
 //**************************************************************
 extern void configBLDCSystem(void){
     configHallSensorPort();
+#ifdef MD_ver5
     configCurrentFault();
+#endif
     configQEI();
     configTimer2();
     configHSPWM();
@@ -293,6 +304,17 @@ static float getPID(float Kp, float Ki, float Kd, float reffernce, float measuer
 //**************************************************************
 //各種モジュールの設定
 static void  configHallSensorPort(void){
+#ifdef MD_ver4
+    TRISAbits.TRISA4    = 1;    //hall 1
+    CNPUAbits.CNPUA4    = 1;
+
+    TRISBbits.TRISB1    = 1;    //hall 2
+    CNPUBbits.CNPUB1    = 1;
+
+    TRISBbits.TRISB0    = 1;    //hall 3
+    CNPUBbits.CNPUB0    = 1;
+#endif
+#ifdef MD_ver5
     TRISBbits.TRISB4    = 1;    //hall 1
     CNPUBbits.CNPUB4    = 1;
 
@@ -301,12 +323,11 @@ static void  configHallSensorPort(void){
 
     TRISBbits.TRISB5    = 1;    //hall 3
     CNPUBbits.CNPUB5    = 1;
+#endif
 }
 
 static void configCurrentFault(void){
     IEC5bits.PWM1IE = 1;
-//    TRISBbits.TRISB3    = 1;    //RB3->FLT1
-//    iPPSInput( IN_FN_PPS_FLT1, IN_PIN_PPS_RP35 );
     TRISBbits.TRISB3    = 1;    //RB3->FLT1
     iPPSInput( IN_FN_PPS_FLT1, IN_PIN_PPS_RP35 );
 }
@@ -324,15 +345,21 @@ static  void configTimer3(void){
 }
 
 static void  configQEI(void){
-    //channel A: RB6/RP38
-    //channel B: RB7/RP39
+#ifdef MD_ver4
+    TRISBbits.TRISB4    = 1;    //channel A -> input
+    TRISBbits.TRISB5    = 1;    //channel B -> input
 
+    iPPSInput(IN_FN_PPS_QEA1, IN_PIN_PPS_RP36);
+    iPPSInput(IN_FN_PPS_QEB1, IN_PIN_PPS_RP37);
+#endif
+
+#ifdef MD_ver5
     TRISBbits.TRISB6    = 1;    //channel A -> input
     TRISBbits.TRISB7    = 1;    //channel B -> input
 
     iPPSInput(IN_FN_PPS_QEA1, IN_PIN_PPS_RP38);
     iPPSInput(IN_FN_PPS_QEB1, IN_PIN_PPS_RP39);
-
+#endif
     QEI1CONbits.QEISIDL = 1;        //アイドル時停止
     QEI1CONbits.PIMOD   = 0b110;    //速度計測モードでは無視される
     QEI1CONbits.IMV     = 0b00;     //インデックスは不使用
@@ -357,18 +384,35 @@ static void  configQEI(void){
 static void  configHSPWM(void){
     //Config HSPWM module
     ConfigHSPWM1( pwmcon_conf, iocon_conf, phase1_conf, trgcon_donf, sphase1_conf );
+#ifdef MD_ver4
+    ConfigHSPWMFault1( fclcon_conf_md4 );
+#endif
+#ifdef MD_ver5
     ConfigHSPWMFault1( fclcon_conf );
+#endif
     ConfigHSPWMLeb1( lebcon_conf );
     SetHSPWMDeadTime1( dtr_conf, aldtr_conf );
+#ifdef MD_ver5
     PWMCON1bits.FLTIEN  = 1;    //過電流制限をPWM1が代表で割込み
+#endif
 
     ConfigHSPWM2( pwmcon_conf, iocon_conf, phase1_conf, trgcon_donf, sphase1_conf );
+#ifdef MD_ver4
+    ConfigHSPWMFault2( fclcon_conf_md4 );
+#endif
+#ifdef MD_ver5
     ConfigHSPWMFault2( fclcon_conf );
+#endif
     ConfigHSPWMLeb2( lebcon_conf );
     SetHSPWMDeadTime2( dtr_conf, aldtr_conf );
 
     ConfigHSPWM3( pwmcon_conf, iocon_conf, phase1_conf, trgcon_donf, sphase1_conf );
+#ifdef MD_ver4
+    ConfigHSPWMFault3( fclcon_conf_md4 );
+#endif
+#ifdef MD_ver5
     ConfigHSPWMFault3( fclcon_conf );
+#endif
     ConfigHSPWMLeb3( lebcon_conf );
     SetHSPWMDeadTime3( dtr_conf, aldtr_conf );
 
