@@ -9,6 +9,7 @@
       <itemPath>initialize.h</itemPath>
       <itemPath>hspwm_config.h</itemPath>
       <itemPath>MotorDriverStatus.h</itemPath>
+      <itemPath>config_can.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -21,6 +22,7 @@
       <itemPath>BLDC_Drive_Control.c</itemPath>
       <itemPath>initialize.c</itemPath>
       <itemPath>MotorDriverStatus.c</itemPath>
+      <itemPath>config_can.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -39,7 +41,7 @@
         <platformTool>PICkit3PlatformTool</platformTool>
         <languageToolchain>XC16</languageToolchain>
         <languageToolchainVersion>1.22</languageToolchainVersion>
-        <platform>3</platform>
+        <platform>4</platform>
       </toolsSet>
       <compileType>
         <linkerTool>
