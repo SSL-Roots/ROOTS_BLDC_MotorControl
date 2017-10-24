@@ -92,7 +92,7 @@ extern void driveBLDCSystem(void){
         rotate  = ROTATE_CCW;
         duty    = -1*duty;
     }
-    driveTreePhaseInverter( getHallPosition(), 800, 0 );
+    driveTreePhaseInverter( getHallPosition(), duty, rotate );
     stateFlagDriving( 1 );
 //    driveTreePhaseInverter(getHallPosition(), 50, rotate);
 }
