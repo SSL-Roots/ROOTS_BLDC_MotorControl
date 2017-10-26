@@ -72,7 +72,7 @@ extern void configBLDCSystem(void){
     configQEI();
     configTimer2();
     configHSPWM();
-    setPIDGain(0.00003, 0.000003, 0.0);
+    setPIDGain(0.00006, 0.00006, 0.0);
 }
 
 //**************************************************************
