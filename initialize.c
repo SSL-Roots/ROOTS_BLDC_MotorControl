@@ -1,6 +1,7 @@
 #include <xc.h>
 #include "initialize.h"
 #include "config_can.h"
+#include "uart_dsPIC33F.h"
 
 static void initializeOsc(void){
 
@@ -34,6 +35,7 @@ static void initializeOsc(void){
     _PLLPOST    = 0;
     _PLLPRE     = 0;
 #ifdef STM32
+    //_PLLDIV     = 41;
     _PLLDIV     = 41;
 #endif
 #ifdef LPC4088
@@ -44,6 +46,7 @@ static void initializeOsc(void){
 }
 
 static void initializeIO(void){
+#ifndef MAIN_BOARD_VER5
     ANSELA  = 0x0000;
     PORTA   = 0x0000;
     TRISA   = 0x0000;
@@ -51,11 +54,59 @@ static void initializeIO(void){
     ANSELB  = 0x0000;
     PORTB   = 0x0000;
     TRISB   = 0x0000;
+#else
+    //180319_horie プルアップ禁止設定（HALL）
+    ANSELA  = 0x0000;
+    PORTA   = 0x0000;
+    TRISA   = 0x000C;
+    CNPUAbits.CNPUA4 = 0;
+    CNPDAbits.CNPDA4 = 0;
+
+    ANSELB  = 0x0000;
+    PORTB   = 0x0000;
+    TRISB   = 0x0000;
+    CNPUBbits.CNPUB4 = 0;
+    CNPUBbits.CNPUB5 = 0;
+    CNPDBbits.CNPDB4 = 0;
+    CNPDBbits.CNPDB5 = 0;
+#endif
 }
+
+#ifdef MAIN_BOARD_VER5
+static void getMDNomber(void){
+    
+    char portA2;
+    char portA3;
+    
+    portA2 = (char)PORTAbits.RA2;
+    portA3 = (char)PORTAbits.RA3;
+    
+    if( (portA2 == 0) && (portA3 == 0) ){
+        MD_Nomber  = 1;
+    }
+    else if( (portA2 == 1) && (portA3 == 0) ){
+        MD_Nomber  = 2;
+    }
+    else if( (portA2 == 0) && (portA3 == 1) ){
+        MD_Nomber  = 3;
+    }
+
+}
+#endif
+
 
 void initializeSystems(void){
     initializeOsc();
     initializeIO();
+
+#ifdef DEBUG_MODE
+    initializeUart( 35, 34, FCY*2, UART_BAUDRATE);
+#endif
+    
+    
+#ifdef MAIN_BOARD_VER5
+    getMDNomber();
+#endif
     initCAN();
 }
 

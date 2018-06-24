@@ -3,6 +3,23 @@
 
 static Status_char driver_status;
 
+short reqWheel_speed;
+short reqWheel_speed_can_0;
+short reqWheel_speed_can_1;
+short reqWheel_speed_can_2;
+short resWheel_speed;
+float reqWheel_speed_PID;
+float resWheel_speed_PID;
+float Output;
+int reqWheel_speed_PID_int;
+int resWheel_speed_PID_int;
+int Output_int;
+int Output_Duty;
+int order_float_int;
+int ref_omega_int;
+int output_int[4];
+char rotate_chaeck;
+
 static void setDriving(void){
     driver_status.status.Driving    = 1;
 }

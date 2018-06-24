@@ -11,9 +11,9 @@
 #include <string.h>
 #include <xc.h>
 #include "config_can.h"
+#include "BLDC_Drive_Control.h"
+#include "MotorDriverStatus.h"
 
-//#define LPC4088
-//#define STM32
 #define F_RX_CAN _LATA3
 /*
  * 
@@ -36,6 +36,9 @@ void initTimer1(void);
 
 /*  変数    */
 OrderMotVel order;
+#ifdef MAIN_BOARD_VER5
+    char MD_Nomber;
+#endif
 unsigned int ecan1txmsgBuf[NUM_OF_ECAN_BUFS][8] __attribute__((space(xmemory)));
 unsigned int ecan1rxmsgBuf[NUM_OF_ECAN_BUFS][8] __attribute__((space(xmemory)));
 static short checkRXCounter = 0;
@@ -58,8 +61,9 @@ void initCAN(void)
     C1CTRL1bits.CANCAP = 0;
 
     C1CFG1bits.SJW      = SJW_2TQ;
-    //C1CFG1bits.BRP      = CAN_BAUD_PRESCALE(2);
-    C1CFG1bits.BRP      = CAN_BAUD_PRESCALE(10);
+    //C1CFG1bits.BRP      = CAN_BAUD_PRESCALE(2); //500kbps
+    //C1CFG1bits.BRP      = CAN_BAUD_PRESCALE(10);  //100kbps
+    C1CFG1bits.BRP      = CAN_BAUD_PRESCALE(1);  //1Mbps
     C1CFG2bits.WAKFIL   = NO_WAKEUP_FIL;
     C1CFG2bits.SEG2PHTS = FREE_PROGRAMMABLE;
     C1CFG2bits.SEG2PH   = CAN_SEGMENT_BIT(6);
@@ -80,6 +84,9 @@ void initCAN(void)
     C1TR01CONbits.TXEN0 = 1;        //1:送信バッッファ　0:受信バッファ
     C1TR01CONbits.TX0PRI = 0b01;    //優先度
     C1RXFUL1 = C1RXFUL2 = C1RXOVF1 = C1RXOVF2 = 0x00000;
+    
+  //  C1CTRL1bits.REQOP   = NORMAL_MODE;
+  //  while(C1CTRL1bits.OPMODE != NORMAL_MODE);
     /* Write to message buffer 0 */
     /* CiTRBnSID = 0bxxx1 0010 0011 1100
        IDE = 0b0
@@ -87,7 +94,36 @@ void initCAN(void)
        SID<10:0>= 0b100 1000 1111
      * SID<10:0>= 0b001 0000 0000
      */
-    ecan1txmsgBuf[0][0] = 0x0410;//ID:104
+#ifndef MAIN_BOARD_VER5
+    #ifdef MotNum_0
+        //return order.Mot0OrderVel;
+       ecan1txmsgBuf[0][0] = 0x0400;//ID:100
+    #endif
+    #ifdef MotNum_1
+        ecan1txmsgBuf[0][0] = 0x0404;//ID:101
+    #endif
+    #ifdef MotNum_2
+        ecan1txmsgBuf[0][0] = 0x0408;//ID:102
+    #endif
+    #ifdef MotNum_3
+        ecan1txmsgBuf[0][0] = 0x040C;//ID:103
+    #endif
+#else
+        switch(MD_Nomber){
+            case 1:
+                ecan1txmsgBuf[0][0] = 0x040C;//ID:103
+                break;
+            case 2:
+                ecan1txmsgBuf[0][0] = 0x0404;//ID:101
+                break;
+            case 3:
+                ecan1txmsgBuf[0][0] = 0x0408;//ID:102
+                break;
+            default:
+                break;
+        }
+#endif
+    
     /* CiTRBnEID = 0bxxxx 0000 0000 0000
        EID<17:6> = 0b0000 0000 0000 */
     ecan1txmsgBuf[0][1] = 0x0000;
@@ -97,11 +133,11 @@ void initCAN(void)
        RB1 = 0b0
        RB0 = 0b0
        DLC = 0b1111 */
-    ecan1txmsgBuf[0][2] = 0x0004;
+    ecan1txmsgBuf[0][2] = 0x0006;
 /* Write message data bytes */
-    ecan1txmsgBuf[0][3] = 0xab0d;
-//    ecan1msgBuf[0][4] = 0xabcd;
-//    ecan1msgBuf[0][5] = 0xabcd;
+    ecan1txmsgBuf[0][3] = 0xaaaa;
+    ecan1txmsgBuf[0][4] = 0xaaaa;
+    ecan1txmsgBuf[0][5] = 0xaaaa;
 //    ecan1msgBuf[0][6] = 0xabcd;
 /* Request message buffer 0 transmission */
 
@@ -117,10 +153,17 @@ void initCAN(void)
     RPOR2bits.RP39R = 0b001110;
 #endif
 #ifdef MD_ver5
+    #ifndef MAIN_BOARD_VER5
     TRISBbits.TRISB9 = 1;
     RPINR26 = 0;
     RPINR26bits.C1RXR = 0x29;
     RPOR3bits.RP40R = 0b001110;
+    #else
+    TRISBbits.TRISB8 = 1;
+    RPINR26 = 0;
+    RPINR26bits.C1RXR = 0x28;
+    RPOR3bits.RP41R = 0b001110;
+    #endif
 #endif
 
 }
@@ -171,7 +214,7 @@ void initDMA(void)
 
     DMA1CONbits.CHEN = 1;
 
-
+//現状以下の割り込みを許可するとCANがStuffErrorを起こす
 //    IEC0bits.DMA0IE = 1;
 //    IEC0bits.DMA1IE = 1;
 }
@@ -213,46 +256,72 @@ void initCANINT(void)
 
 void __attribute__(( interrupt, auto_psv)) _C1Interrupt(void)
 {
-    F_RX_CAN = 1;
+    //F_RX_CAN = 1;
     if(C1INTFbits.RBIF == 1)
     {
 
+//        LED_CAN_ENABLE = 0;
+
+               
         if(C1RXFUL1bits.RXFUL10 == 1){
-                //LED_CAN_ENABLE = 1;
+                LED_CAN_ENABLE = 1;
                 checkRXCounter++;
                 exchangeOrderData();
-                //ecan1txmsgBuf[0][3] = (unsigned int)order.Mot0OrderVel;
-                //ecan1txmsgBuf[0][4] = (unsigned int)order.Mot1OrderVel;
-               // C1TR01CONbits.TXREQ0 = 1;
+//                ecan1txmsgBuf[0][3] = (unsigned int)order.Mot0OrderVel;
+//                ecan1txmsgBuf[0][4] = (unsigned int)order.Mot1OrderVel;
+//                C1TR01CONbits.TXREQ0 = 1;
                 C1RXFUL1bits.RXFUL10 = 0;
         }
         C1INTFbits.RBIF = 0;
+
     }
     IFS2bits.C1IF = 0;
-    F_RX_CAN = 0;
+    //F_RX_CAN = 0;
 }
 
 void exchangeOrderData(void)
 {
     //もう少し汎用的にしたい
     memcpy(&order,&ecan1rxmsgBuf[1][3],sizeof(order));
+    reqWheel_speed_can_1 = (short)order.Mot1OrderVel;
+    reqWheel_speed_can_2 = (short)order.Mot2OrderVel;
+    reqWheel_speed_can_0 = (short)order.Mot3OrderVel;
 }
 
 signed short getOrder(void)
 {
-#ifdef MotNum_0
-    return order.Mot0OrderVel;
-#endif
-#ifdef MotNum_1
-    return order.Mot1OrderVel;
-#endif
-#ifdef MotNum_2
-    return order.Mot2OrderVel;
-#endif
-#ifdef MotNum_3
-    return order.Mot3OrderVel;
-#endif
+#ifndef MAIN_BOARD_VER5
+    #ifdef MotNum_0
+        //return order.Mot0OrderVel;
+        return order.Mot3OrderVel;
+    #endif
+    #ifdef MotNum_1
+        return order.Mot1OrderVel;
+    #endif
+    #ifdef MotNum_2
+        return order.Mot2OrderVel;
+    #endif
+    #ifdef MotNum_3
+        return order.Mot3OrderVel;
+    #endif
 
+#else
+        switch(MD_Nomber){
+            case 1:
+                return order.Mot3OrderVel;
+                break;
+            case 2:
+                return order.Mot1OrderVel;
+                break;
+            case 3:
+                return order.Mot2OrderVel;
+                break;
+            default:
+                return 0;
+                break;
+        }
+#endif
+    
     return 0;
 }
 
@@ -263,7 +332,7 @@ void initTimer1(void)
     IPC0bits.T1IP = 0b111;  //優先度7
     IEC0bits.T1IE = 1;      // Enable Timer1 interrupt
     TMR1 = 0x0000;
-    PR1 = 0x3FF;           // Timer1 period register = ?????
+    PR1 = 0x9D0;           // Timer1 period register = ?????
     T1CONbits.TCKPS = 2;    // 1:64
     T1CONbits.TON = 1;      // Enable Timer1 and start the counter
     /*Timer 50msec*/
@@ -275,15 +344,25 @@ void __attribute__ ( (interrupt, no_auto_psv) ) _T1Interrupt( void )
     T1CONbits.TON = 0;
     
     count ++;
+    //CAN送信用
+    tx_MotRevReal  = getWheelAngularVelocity();
+    tx_MotRevOrder = getOrder();
+    
+    ecan1txmsgBuf[0][3] = (unsigned int)tx_MotRevOrder;
+    ecan1txmsgBuf[0][4] = (unsigned int)tx_MotRevReal;
+    ecan1txmsgBuf[0][5] = (unsigned int)tx_MotDutyOrder;
+    
+    
+    C1TR01CONbits.TXREQ0 = 1; 
     if(count > 100){
         /*50msecに一回CANを受信しているか確認する*/
         if(checkRXCounter != checkRXCounter_last)
         {
-            LED_CAN_ENABLE = 1;
+            //LED_CAN_ENABLE = 1;
         }
         else if(checkRXCounter == checkRXCounter_last)
         {
-            LED_CAN_ENABLE = 0;
+            //LED_CAN_ENABLE = 0;
         }
 
         checkRXCounter_last = checkRXCounter;
@@ -292,6 +371,6 @@ void __attribute__ ( (interrupt, no_auto_psv) ) _T1Interrupt( void )
 
     TMR1 = 0;
     T1CONbits.TON = 1;
-
+    LED_CAN_ENABLE = 0;
     /* reset Timer 1 interrupt flag */
 }

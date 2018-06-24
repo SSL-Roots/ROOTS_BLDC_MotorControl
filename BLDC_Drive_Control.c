@@ -6,10 +6,17 @@
 #include "BLDC_Drive_Control.h"
 #include "hspwm_config.h"
 #include "MotorDriverStatus.h"
+#include "config_can.h"
 
 //#define MD_ver4
 #define MD_ver5
 
+short tx_MotRevOrder;
+short tx_MotRevReal;
+short tx_MotDutyOrder;
+
+static char shutdown_flag;
+static char limit_flag;
 
 //設定関数
 static void configHallSensorPort(void);
@@ -17,9 +24,11 @@ static void configCurrentFault(void);
 static void configHSPWM(void);
 static void configQEI(void);
 static void configTimer2(void);
-static void configTimer3(void);
-static int CL_count = 0;
-static int CL_fault_Flag = 0;
+//static void configTimer3(void);
+//static int CL_count = 0;
+//static int CL_fault_Flag = 0;
+//
+//static short odrer_zero_count = 0;
 //モータ駆動関係
 static unsigned int getHallPosition(void);
 #ifdef MD_ver4
@@ -51,13 +60,18 @@ static float rotate_Kp  = 0;
 static float rotate_Ki  = 0;
 static float rotate_Kd  = 0;
 static float ref_omega  = 0;
+//static float ref_omega_pre  = 0;
 static float mes_omega  = 0;
-static float getAngularVelocity(int cnt_encoder);   //エンコーダのカウントから車輪の回転角を返す．
+//static float getAngularVelocity(int cnt_encoder);   //エンコーダのカウントから車輪の回転角を返す．
 #define SMP_RATE    2000.0    //sampling rate 2kHz->500us
 #define GEAR_RATIO  2.4  //60/25
-#define ENCODER_RESOLUTION  0.0015339 //pi/2048   rad/cnt
+#define ENCODER_RESOLUTION_REAL 1.5339 //pi/2048   mrad/cnt
+#define ENCODER_RESOLUTION 0.0015339 //pi/2048   mrad/cnt
 
-static int count = 0;
+//static char f_order_zero = 0;
+//static int order_zero_count = 0;
+
+//static int count = 0;
 
 //**************************************************************
 //**************************************************************
@@ -72,7 +86,10 @@ extern void configBLDCSystem(void){
     configQEI();
     configTimer2();
     configHSPWM();
-    setPIDGain(0.00006, 0.00006, 0.0);
+//    setPIDGain(0.00006, 0.00006, 0.0);  //初期
+    setPIDGain(0.009, 0.0009, 0.001);
+//    setPIDGain(0.00001, 0.00006, 0.000);
+//    setPIDGain(0.006, 0.0001, 0.000);
 }
 
 //**************************************************************
@@ -82,7 +99,35 @@ extern void configBLDCSystem(void){
 //**************************************************************
 extern void driveBLDCSystem(void){
 //    int duty = 1024.0 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, (int)ref_omega, mes_omega );
-    int duty = 1024 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, ref_omega, mes_omega );
+      int duty = 1024 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, ref_omega, mes_omega );
+      
+//      if((order_signed == 0)) 
+//      {
+//          duty = 0;
+//      }
+//
+//      if((ref_omega / ref_omega_pre) < 0.0)
+//      {
+//          f_order_zero = 1;
+//      }
+//      
+//      if(f_order_zero == 1)
+//      {
+//          order_zero_count++;
+//      }
+//      
+//      if(order_zero_count > 5)
+//      {
+//          f_order_zero = 0;
+//          order_zero_count = 0;
+//      }
+//      
+//      if(f_order_zero == 1)
+//      {
+//          duty = 0;
+//      }
+//      
+//      
 //    int duty = 1024.0 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, 5, mes_omega );
 
     int rotate;
@@ -92,6 +137,20 @@ extern void driveBLDCSystem(void){
         rotate  = ROTATE_CCW;
         duty    = -1*duty;
     }
+    
+    //過電流検知
+    limit_flag = shutdownCurrentMotorUnit();
+//    if(limit_flag == 1)
+//    {
+//        LED_DEBUG_FLAG_1 = 1;
+//        duty = 0;
+//    }
+//    else{
+//        LED_DEBUG_FLAG_1 = 0;
+//    }
+    
+    Output_Duty = duty;
+    
     driveTreePhaseInverter( getHallPosition(), duty, rotate );
     stateFlagDriving( 1 );
 //    driveTreePhaseInverter(getHallPosition(), 50, rotate);
@@ -105,16 +164,18 @@ extern void setPIDGain(float Kp, float Ki, float Kd){
 
 extern void setReffernceAngularVelocity(float omega){   //車輪CWが正
     ref_omega   = -1.0 * omega / SMP_RATE * GEAR_RATIO / ENCODER_RESOLUTION;  //カウント数　= 車輪の回転数 / サンプリング周波数 * 増速比 *エンコーダの分解能
+    ref_omega_int = (int)(ref_omega * 1000);
+    
 }
 extern void setMeasuredAngularVelocity(float omega){
     mes_omega   = omega;
 }
 void __attribute__((  interrupt, auto_psv))  _T2Interrupt(void){
     int velocity = 0;
-    int duty;
+//    int duty;
     IFS0bits.T2IF   = 0;
     velocity    = VEL1CNT;
-    count   += velocity;
+//    count   += velocity;
 //    if( count>9083 ){
 //        LATAbits.LATA1  = 1;
 //    }else{
@@ -137,8 +198,8 @@ void __attribute__((  interrupt, auto_psv))  _PWM1Interrupt(void){
 
 //**************************************************************
 //アクセス関数
-short getWheelAngularVelocity(void){
-    return (short)-1*mes_omega * SMP_RATE * ENCODER_RESOLUTION / GEAR_RATIO;    //車輪回転数 = パルス数*サンプリング周波数 * エンコーダ分解能 / ギヤ比
+extern short getWheelAngularVelocity(void){
+    return (short)(-1*mes_omega * SMP_RATE * ENCODER_RESOLUTION);  // / GEAR_RATIO;    //車輪回転数 = パルス数*サンプリング周波数 * エンコーダ分解能 / ギヤ比
 }
 
 unsigned char getMotorDriverStatus(void){
@@ -193,6 +254,7 @@ static unsigned int getHallPosition(void){
 }
 
 static void driveTreePhaseInverter( unsigned int pattern, unsigned int duty, unsigned int rotate_direction ){
+    rotate_chaeck = (char)rotate_direction;
     if(rotate_direction == ROTATE_CCW){
         switch(pattern){
             case 6: //V1-2:+
@@ -274,13 +336,32 @@ static void driveTreePhaseInverter( unsigned int pattern, unsigned int duty, uns
 
 static float getPID(float Kp, float Ki, float Kd, float reffernce, float measuered){
     static float error[3]={0,0,0};    //error[n]:nサンプリング前(0は現在)
+    
+#if 0
     static float output[2]={0,0};
-
     error[0] = reffernce - measuered;
+    
 
+    
     output[1] = Ki*error[0] + Kp*error[1]+Kd*error[2];
     output[0] += output[1];
-
+    
+/* ************************** */
+/* **********過電流保護******** */
+/* ************************** */
+    if(shutdown_flag == 1)
+    {
+        output[0] = 0.0;
+        output[1] = 0.0;
+        error[0] = 0.0;
+        error[1] = 0.0;
+    }
+/* ************************** */    
+    
+/* ************************** */
+/* **********出力制限********** */
+/* ************************** */
+    
     if(output[0]>=1.0){
         output[0]=1.0;
         stateFlagFullSpeed(1);
@@ -291,11 +372,106 @@ static float getPID(float Kp, float Ki, float Kd, float reffernce, float measuer
         stateFlagFullSpeed(0);
     }
 
+/* ************************** */    
+    
+    tx_MotDutyOrder = (short)(output[0] * 100);
+
+    error[2]    = error[1];
+    error[1]    = error[0];
+#else
+    static float output[4]={0,0,0,0};
+    
+//    if(reffernce == 0.0)
+//    {
+//        output[1] = 0;
+//    }
+    reqWheel_speed_PID = reffernce;
+    resWheel_speed_PID = measuered;
+    reqWheel_speed_PID_int = (int)(reffernce );
+    resWheel_speed_PID_int = (int)(measuered );
+    error[0] = reffernce - measuered;
+    
+    output[0] = Kp * error[0];
+    output[1] = Ki * error[0] + output[1];
+    output[2] = Kd * ( error[0] - error[1]);
+    
+    
+/* *********I項の制限*********** */
+    if(output[1]>= OUTPUT_LIMIT){
+        output[1] = OUTPUT_LIMIT;
+    }
+    else if(output[1]<-OUTPUT_LIMIT)
+    {
+        output[1]= -OUTPUT_LIMIT;
+    }
+/* **************************** */    
+    
+    output[3] = output[0] + output[1] + output[2]; 
+    
+/* ************************** */
+/* **********出力制限********** */
+/* ************************** */
+    
+    if(output[3]>=OUTPUT_LIMIT){
+        output[3]=OUTPUT_LIMIT;
+        
+    /* **********アンチワインドアップ******** */
+        output[1] = output[3] - (output[0] + output[2]);
+        stateFlagFullSpeed(1);
+    }
+    else if(output[3]<-OUTPUT_LIMIT)
+    {
+        output[3]=-OUTPUT_LIMIT;
+        
+    /* **********アンチワインドアップ******** */
+        output[1] = output[3] - (output[0] + output[2]);
+        stateFlagFullSpeed(1);
+    }
+    else
+    {
+        stateFlagFullSpeed(0);
+    }
+    
+
+
+/* ************************** */        
+
+/* ********************************** */
+/* **********アンチワインドアップ******** */
+/* ********************************** */
+
+
+/* ********************************** */       
+    
+/* ************************** */
+/* **********過電流保護******** */
+/* ************************** */
+//    if(shutdown_flag == 1)
+//    {
+//        output[0] = 0.0;
+//        output[1] = 0.0;
+//        output[2] = 0.0;
+//        output[3] = 0.0;
+//        error[0] = 0.0;
+//        error[1] = 0.0;
+//    }
+/* ************************** */    
+    
+output_int[0] = (int)(output[0] * 1000);
+output_int[1] = (int)(output[1] * 1000);
+output_int[2] = (int)(output[2] * 1000);
+output_int[3] = (int)(output[3] * 1000);
+    
+    tx_MotDutyOrder = (short)(output[3] * 100);
+
     error[2]    = error[1];
     error[1]    = error[0];
 
+#endif
+    
+    Output = output[3];
 
-    return output[0];
+    return output[3];
 }
 
 //static float getAngularVelocity(int cnt_encoder){
@@ -338,11 +514,11 @@ static  void configTimer2(void){
     ConfigIntTimer2(T2_INT_PRIOR_3 & T2_INT_ON);
 }
 
-static  void configTimer3(void){
-    //Config Timer3
-    OpenTimer3(T3_OFF & T3_GATE_OFF & T3_PS_1_256 & T3_SOURCE_INT, 62500);  //400 ms
-    ConfigIntTimer3(T3_INT_PRIOR_3 & T3_INT_ON);
-}
+//static  void configTimer3(void){
+//    //Config Timer3
+//    OpenTimer3(T3_OFF & T3_GATE_OFF & T3_PS_1_256 & T3_SOURCE_INT, 62500);  //400 ms
+//    ConfigIntTimer3(T3_INT_PRIOR_3 & T3_INT_ON);
+//}
 
 static void  configQEI(void){
 #ifdef MD_ver4
@@ -383,7 +559,7 @@ static void  configQEI(void){
 
 static void  configHSPWM(void){
     //Config HSPWM module
-    ConfigHSPWM1( pwmcon_conf, iocon_conf, phase1_conf, trgcon_donf, sphase1_conf );
+    ConfigHSPWM1( pwmcon_conf, iocon_conf, phase1_conf, trgcon_donf, sphase1_conf);
 #ifdef MD_ver4
     ConfigHSPWMFault1( fclcon_conf_md4 );
 #endif
@@ -394,6 +570,10 @@ static void  configHSPWM(void){
     SetHSPWMDeadTime1( dtr_conf, aldtr_conf );
 #ifdef MD_ver5
     PWMCON1bits.FLTIEN  = 1;    //過電流制限をPWM1が代表で割込み
+//    PWMCON1bits.FLTIEN  = 0;
+//    PWMCON1bits.FLTSTAT = 0;
+//    PWMCON1bits.CLIEN   = 0;
+//    PWMCON1bits.CLSTAT  = 0;
 #endif
 
     ConfigHSPWM2( pwmcon_conf, iocon_conf, phase1_conf, trgcon_donf, sphase1_conf );
@@ -418,3 +598,30 @@ static void  configHSPWM(void){
 
     OpenHSPWM( ptcon_conf, ptcon2_conf, ptper_conf, sevtcmp_conf ); //open HSPWM module
 }
+
+unsigned char shutdownCurrentMotorUnit(void)
+{
+    static unsigned char  count_shutdown;
+
+    if(shutdown_flag == 1)
+    {
+        count_shutdown++;
+        if(count_shutdown >= 50)
+        {
+            count_shutdown = 0;
+            shutdown_flag = 0;
+            return 0;
+        }
+        return 1;
+    }
+
+    if( (tx_MotDutyOrder > 80) || (tx_MotDutyOrder < -80))
+//    if( (tx_MotDutyOrder > 95) && (tx_MotDutyOrder < -95))
+    {
+        shutdown_flag = 1;
+        return 1;
+
+    }
+    return 0;
+}
+/****************************************/

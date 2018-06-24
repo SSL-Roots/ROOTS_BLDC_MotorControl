@@ -12,17 +12,24 @@
 //#define LPC4088
 #define STM32
 
+//MainBoardVer
+#define MAIN_BOARD_VER5
+
 #ifdef MD_ver5
-    #define LED_CAN_ENABLE _LATB1
+    #define LED_CAN_ENABLE   _LATB1
+    #define LED_DEBUG_FLAG_1 _LATA2
+    #define LED_DEBUG_FLAG_2 _LATA3
 #endif
 
 #ifdef MD_ver4
     #define LED_CAN_ENABLE _LATA1
+    #define LED1 _LATA3
+    #define LED2 _LATA2
 #endif
 
 /*対象のMotNum以外をコメントアウトする*/
 //#define MotNum_0
-#define MotNum_1
+//#define MotNum_1
 //#define MotNum_2
 //#define MotNum_3
 
@@ -36,6 +43,9 @@ typedef struct {
 
 /*  変数    */
 extern OrderMotVel order;
+#ifdef MAIN_BOARD_VER5
+    extern char MD_Nomber;
+#endif
 
 /*  関数    */
 extern void initCAN(void);

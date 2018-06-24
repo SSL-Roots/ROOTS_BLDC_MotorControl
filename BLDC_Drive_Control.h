@@ -16,9 +16,18 @@ void setMeasuredAngularVelocity( float omega );    //rad/s，車輪の回転数�
 void setPIDGain(float Kp, float Ki, float Kd);      //制御自体はパルス数で実行
 void setRotationDirection(int direction);
 
-short getWheelAngularVelocity(void);
+unsigned char shutdownCurrentMotorUnit(void);
+
+extern short getWheelAngularVelocity(void);
 unsigned char getMotorDriverStatus(void);
 
+extern short tx_MotRevOrder;
+extern short tx_MotRevReal;
+extern short tx_MotDutyOrder;
+
+#define OUTPUT_LIMIT 0.3
+
+extern signed short order_signed ;
 
 #endif	/* BLDC_DRIVE_CONTROL_H */
 

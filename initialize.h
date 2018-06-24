@@ -10,5 +10,11 @@
 
 void initializeSystems(void);
 
+#define FCY 39613750
+#define	UART_BAUDRATE   57600
+
+//#define DEBUG_MODE
+
+
 #endif	/* INITIALIZE_H */
 
