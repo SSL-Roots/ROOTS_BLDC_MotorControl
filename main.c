@@ -73,22 +73,18 @@ int main(void){
                 C1TR01CONbits.TXREQ0 = 0;
             }
         }
-        setReffernceAngularVelocity(-6.28*2);
+        setReffernceAngularVelocity(-800);
         __delay_ms(2000);
-        setReffernceAngularVelocity(-6.28*4);
+        setReffernceAngularVelocity(800);
         __delay_ms(2000);
-        setReffernceAngularVelocity(-6.28*6);
-        __delay_ms(2000);
-        setReffernceAngularVelocity(-6.28*8);
-        __delay_ms(2000);
-        setReffernceAngularVelocity(6.28*2);
-        __delay_ms(2000);
-        setReffernceAngularVelocity(6.28*4);
-        __delay_ms(2000);
-        setReffernceAngularVelocity(6.28*6);
-        __delay_ms(2000);
-        setReffernceAngularVelocity(6.28*8);
-        __delay_ms(2000);
+//        setReffernceAngularVelocity(6.28*2);
+//        __delay_ms(2000);
+//        setReffernceAngularVelocity(6.28*4);
+//        __delay_ms(2000);
+//        setReffernceAngularVelocity(6.28*6);
+//        __delay_ms(2000);
+//        setReffernceAngularVelocity(6.28*8);
+//        __delay_ms(2000);
     }
 
        return 0;
