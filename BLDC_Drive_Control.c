@@ -102,8 +102,8 @@ extern void configBLDCSystem(void){
 //**************************************************************
 extern void driveBLDCSystem(void){
 //    int duty = 1024.0 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, (int)ref_omega, mes_omega );
-//      int duty = 1024 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, ref_omega, mes_omega );
-      int duty = (int)getPID(rotate_Kp, rotate_Ki, rotate_Kd, ref_omega, mes_omega );
+      int duty = 1024 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, ref_omega, mes_omega );
+//      int duty = (int)getPID(rotate_Kp, rotate_Ki, rotate_Kd, ref_omega, mes_omega );
 //      if((order_signed == 0)) 
 //      {
 //          duty = 0;
@@ -129,15 +129,12 @@ extern void driveBLDCSystem(void){
 //      {
 //          duty = 0;
 //      }
-//      
-//      
-//    int duty = 1024.0 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, 5, mes_omega );
 
     int rotate;
     if(duty > 0){
-        rotate  = ROTATE_CCW;
-    }else{
         rotate  = ROTATE_CW;
+    }else{
+        rotate  = ROTATE_CCW;
         duty    = -1*duty;
     }
     
@@ -155,9 +152,7 @@ extern void driveBLDCSystem(void){
     Output_Duty = duty;
     
     driveTreePhaseInverter( getHallPosition(), (unsigned int) duty, rotate );
-//    driveTreePhaseInverter(getHallPosition(), 500, ROTATE_CCW);
     stateFlagDriving( 1 );
-//    driveTreePhaseInverter(getHallPosition(), 50, rotate);
 }
 
 extern void setPIDGain(float Kp, float Ki, float Kd){
@@ -260,7 +255,6 @@ static unsigned int getHallPosition(void){
 static void driveTreePhaseInverter( unsigned int pattern, unsigned int duty, unsigned int rotate_direction ){
     rotate_chaeck = (char)rotate_direction;
     if(rotate_direction == ROTATE_CCW){ //モータはCW
-        LATBbits.LATB1 = 1;
         switch(pattern){
             case 1: //V1-2:+ 6
                 ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );  //PWM1 high side:PWM, low side:0
@@ -294,7 +288,6 @@ static void driveTreePhaseInverter( unsigned int pattern, unsigned int duty, uns
                 break;
         }
     }else if(rotate_direction == ROTATE_CW){
-        LATBbits.LATB1 = 0;
         switch(pattern){
             case 1: //V1-2:- 2
                 ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L1 );  //PWM1 high side:PWM, low side:0
@@ -477,8 +470,8 @@ output_int[3] = (int)(output[3] * 1000);
     
     Output = output[3];
 
-//    return output[3];
-    return reffernce;   //デバッグ用に指示値をそのままdutyにできるように
+    return output[3];
+//    return reffernce;   //デバッグ用に指示値をそのままdutyにできるように
 }
 
 //static float getAngularVelocity(int cnt_encoder){

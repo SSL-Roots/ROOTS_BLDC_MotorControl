@@ -25,7 +25,7 @@ extern short tx_MotRevOrder;
 extern short tx_MotRevReal;
 extern short tx_MotDutyOrder;
 
-#define OUTPUT_LIMIT 0.3
+#define OUTPUT_LIMIT 1.0
 
 extern signed short order_signed ;
 

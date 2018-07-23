@@ -32,14 +32,14 @@ int main(void){
 #endif
         
     while(1){
-//        order_signed = getOrder();
-//        reqWheel_speed = order_signed / 10;
-//        resWheel_speed = getWheelAngularVelocity();
-//        
-//        order_float = (float)order_signed * 0.05;
-//        order_float_int = (int)(order_float * 1000);
-//        
-//        setReffernceAngularVelocity(order_float);
+        order_signed = getOrder();
+        reqWheel_speed = order_signed / 10;
+        resWheel_speed = getWheelAngularVelocity();
+        
+        order_float = (float)order_signed * 0.05;
+        order_float_int = (int)(order_float * 1000);
+        
+        setReffernceAngularVelocity(order_float);
 //        C1TR01CONbits.TXREQ0 = 1; 
         
         while(C1TR01CONbits.TXREQ0 == 1)
@@ -73,18 +73,9 @@ int main(void){
                 C1TR01CONbits.TXREQ0 = 0;
             }
         }
-        setReffernceAngularVelocity(-800);
-        __delay_ms(2000);
-        setReffernceAngularVelocity(800);
-        __delay_ms(2000);
-//        setReffernceAngularVelocity(6.28*2);
+//        setReffernceAngularVelocity(6.28*1);
 //        __delay_ms(2000);
-//        setReffernceAngularVelocity(6.28*4);
-//        __delay_ms(2000);
-//        setReffernceAngularVelocity(6.28*6);
-//        __delay_ms(2000);
-//        setReffernceAngularVelocity(6.28*8);
-//        __delay_ms(2000);
+
     }
 
        return 0;
