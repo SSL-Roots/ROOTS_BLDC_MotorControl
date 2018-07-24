@@ -71,7 +71,7 @@ unsigned int sevtcmp_conf   =   512;
 
 ////////////////////////////////////////////////////////////////////////////////
 unsigned int dtr_conf       = 0;
-unsigned int aldtr_conf     = 0;   //20
+unsigned int aldtr_conf     = 10;   //dead time=240ns
 
 #endif	/* HSPWM_CONFIG_H */
 
