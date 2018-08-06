@@ -32,7 +32,7 @@ unsigned int iocon_conf     =   PWM_H_PIN_EN |          //PWMxHを使う
                                 PWM_ORENH_OVRDAT_LL |   //OVRDAT<1:0> = 00
                                 PWM_FLT_EN_FLTDAT_LL|   //FLTDAT<1:0> = 00
                                 PWM_CL_EN_CLDAT_LL  |   //CLDAT<1:0>  = 00
-                                PWM_PIN_SWAP_DIS    |   //PWMxLとPWMxHを入れ替えない
+                                PWM_PIN_SWAP_EN    |   //PWMxLとPWMxHを入れ替える
                                 PWM_OR_OVRDAT_NXT_CLK;  //オーバーライドの周期
 
 unsigned int phase1_conf    =   1000;   //PWMxHの周期

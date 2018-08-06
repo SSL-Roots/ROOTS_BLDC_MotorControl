@@ -151,7 +151,8 @@ extern void driveBLDCSystem(void){
     
     Output_Duty = duty;
     
-    driveTreePhaseInverter( getHallPosition(), (unsigned int) duty, rotate );
+//    driveTreePhaseInverter( getHallPosition(), (unsigned int) duty, rotate );
+    driveTreePhaseInverter( getHallPosition(), 100, ROTATE_CW);
     stateFlagDriving( 1 );
 }
 
@@ -254,70 +255,70 @@ static unsigned int getHallPosition(void){
 
 static void driveTreePhaseInverter( unsigned int pattern, unsigned int duty, unsigned int rotate_direction ){
     rotate_chaeck = (char)rotate_direction;
-    if(rotate_direction == ROTATE_CCW){ //モータはCW
+    if(rotate_direction == ROTATE_CW){ //モータはCCW
         switch(pattern){
-            case 1: //V1-2:+ 6
-                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );  //PWM1 high side:PWM, low side:0
-                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L1 );   //PWM2 high side:0, low side:1
+            case 1: //V1-2:- 6
+                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H1L0 );  //PWM1 high side:PWM, low side:0
+                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );   //PWM2 high side:0, low side:1
                 ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L0 );   //PWM3 high side:0, low side:0
                 break;
-            case 2: //V3-1:- 1
-                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );  //PWM1 high side:PWM, low side:0
+            case 2: //V3-1:+ 1
+                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H1L0 );  //PWM1 high side:PWM, low side:0
                 ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L0 );   //PWM2 high side:0, low side:0
-                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L1 );   //PWM3 high side:0, low side:1
+                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );   //PWM3 high side:0, low side:1
                 break;
-            case 3: //V2-3:+ 2
+            case 3: //V2-3:- 2
                 ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L0 );   //PWM1 high side:0, low side:0
-                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );  //PWM2 high side:PWM, low side:0
-                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L1 );   //PWM3 high side:0, low side:1
+                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H1L0 );  //PWM2 high side:PWM, low side:0
+                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );   //PWM3 high side:0, low side:1
                 break;
-            case 4: //V1-2:- 3
-                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L1 );   //PWM1 high side:0, low side:1
-                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );  //PWM2 high side:PWM, low side:0
+            case 4: //V1-2:+ 3
+                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );   //PWM1 high side:0, low side:1
+                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H1L0 );  //PWM2 high side:PWM, low side:0
                 ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L0 );   //PWM3 high side:0, low side:0
                 break;
-            case 5: //V3-1:+ 4
-                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L1 );   //PWM1 high side:0, low side:1
+            case 5: //V3-1:- 4
+                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );   //PWM1 high side:0, low side:1
                 ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L0 );   //PWM2 high side:0, low side:0
-                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );  //PWM3 high side:PWM, low side:0
+                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H1L0 );  //PWM3 high side:PWM, low side:0
                 break;
-            case 6: //V2-3:- 5
+            case 6: //V2-3:+ 5
                 ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L0 );   //PWM1 high side:0, low side:0
-                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L1 );   //PWM2 high side:0, low side:1
-                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );  //PWM3 high side:PWM, low side:0
+                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );   //PWM2 high side:0, low side:1
+                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H1L0 );  //PWM3 high side:PWM, low side:0
                 break;
         }
-    }else if(rotate_direction == ROTATE_CW){
+    }else if(rotate_direction == ROTATE_CCW){
         switch(pattern){
-            case 1: //V1-2:- 2
-                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L1 );  //PWM1 high side:PWM, low side:0
-                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );   //PWM2 high side:0, low side:1
+            case 1: //V1-2:+ 2
+                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );  //PWM1 high side:PWM, low side:0
+                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H1L0 );   //PWM2 high side:0, low side:1
                 ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L0 );   //PWM3 high side:0, low side:0
                 break;
-            case 2: //V3-1:+ 3
-                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L1 );  //PWM1 high side:PWM, low side:0
+            case 2: //V3-1:- 3
+                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );  //PWM1 high side:PWM, low side:0
                 ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L0 );   //PWM2 high side:0, low side:0
-                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );   //PWM3 high side:0, low side:1
+                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H1L0 );   //PWM3 high side:0, low side:1
                 break;
-            case 3: //V2-3:- 4
+            case 3: //V2-3:+ 4
                 ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L0 );   //PWM1 high side:0, low side:0
-                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L1 );  //PWM2 high side:PWM, low side:0
-                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );   //PWM3 high side:0, low side:1
+                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );  //PWM2 high side:PWM, low side:0
+                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H1L0 );   //PWM3 high side:0, low side:1
                 break;
-            case 4: //V1-2:+ 5
-                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );   //PWM1 high side:0, low side:1
-                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L1 );  //PWM2 high side:PWM, low side:0
+            case 4: //V1-2:- 5
+                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H1L0 );   //PWM1 high side:0, low side:1
+                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );  //PWM2 high side:PWM, low side:0
                 ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L0 );   //PWM3 high side:0, low side:0
                 break;
-            case 5: //V3-1:- 6
-                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );   //PWM1 high side:0, low side:1
+            case 5: //V3-1:+ 6
+                ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H1L0 );   //PWM1 high side:0, low side:1
                 ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L0 );   //PWM2 high side:0, low side:0
-                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L1 );  //PWM3 high side:PWM, low side:0
+                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );  //PWM3 high side:PWM, low side:0
                 break;
-            case 6: //V2-3:+ 1
+            case 6: //V2-3:- 1
                 ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L0 );   //PWM1 high side:0, low side:0
-                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );   //PWM2 high side:0, low side:1
-                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H0L1 );  //PWM3 high side:PWM, low side:0
+                ctrlGateOverride( MOTOR_PHASE_2, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H1L0 );   //PWM2 high side:0, low side:1
+                ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );  //PWM3 high side:PWM, low side:0
                 break;
         }
     }
