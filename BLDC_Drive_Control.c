@@ -151,8 +151,8 @@ extern void driveBLDCSystem(void){
     
     Output_Duty = duty;
     
-//    driveTreePhaseInverter( getHallPosition(), (unsigned int) duty, rotate );
-    driveTreePhaseInverter( getHallPosition(), 100, ROTATE_CW);
+    driveTreePhaseInverter( getHallPosition(), (unsigned int) duty, rotate );
+//    driveTreePhaseInverter( getHallPosition(), 100, rotate);
     stateFlagDriving( 1 );
 }
 
@@ -255,7 +255,7 @@ static unsigned int getHallPosition(void){
 
 static void driveTreePhaseInverter( unsigned int pattern, unsigned int duty, unsigned int rotate_direction ){
     rotate_chaeck = (char)rotate_direction;
-    if(rotate_direction == ROTATE_CW){ //モータはCCW
+    if(rotate_direction == ROTATE_CCW){ //モータはCCW
         switch(pattern){
             case 1: //V1-2:- 6
                 ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H1L0 );  //PWM1 high side:PWM, low side:0
@@ -288,7 +288,7 @@ static void driveTreePhaseInverter( unsigned int pattern, unsigned int duty, uns
                 ctrlGateOverride( MOTOR_PHASE_3, GATE_OVERRIDE_EN, GATE_OVERRIDE_EN, GATE_OVR_H1L0 );  //PWM3 high side:PWM, low side:0
                 break;
         }
-    }else if(rotate_direction == ROTATE_CCW){
+    }else if(rotate_direction == ROTATE_CW){
         switch(pattern){
             case 1: //V1-2:+ 2
                 ctrlGateOverride( MOTOR_PHASE_1, GATE_OVERRIDE_DIS, GATE_OVERRIDE_DIS, GATE_OVR_H0L0 );  //PWM1 high side:PWM, low side:0
