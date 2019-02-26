@@ -73,10 +73,8 @@ int main(void){
                 C1TR01CONbits.TXREQ0 = 0;
             }
         }
-//        setReffernceAngularVelocity(6.28*1);
+//        setReffernceAngularVelocity(0);
 //        __delay_ms(2000);
-//        setReffernceAngularVelocity(-6.28*1);
-
     }
 
        return 0;
