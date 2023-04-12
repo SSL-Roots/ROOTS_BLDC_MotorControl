@@ -1,0 +1,24 @@
+/* 
+ * File:   config.h
+ * Author: Tomoaki
+ *
+ * Created on 2016/11/24, 19:56
+ */
+
+#ifndef CONFIG_H
+#define	CONFIG_H
+
+_FGS(GWRP_OFF   & GCP_OFF);
+
+_FOSCSEL(FNOSC_FRCPLL   & IESO_OFF  & PWMLOCK_OFF);
+
+_FOSC(POSCMD_NONE   & OSCIOFNC_ON & IOL1WAY_OFF & FCKSM_CSDCMD);
+
+_FWDT( WDTPOST_PS1  & WDTPRE_PR32   & PLLKEN_ON & WINDIS_OFF    & FWDTEN_OFF );
+
+_FICD( ICS_PGD1  & JTAGEN_OFF );
+
+_FPOR( ALTI2C1_OFF  & ALTI2C2_OFF   & WDTWIN_WIN25 );
+
+
+#endif	/* CONFIG_H */
