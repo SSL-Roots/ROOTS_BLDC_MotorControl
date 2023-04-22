@@ -107,13 +107,14 @@ extern void configBLDCSystem(void){
 extern void driveBLDCSystem(void){
 //    int duty = 1024.0 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, (int)ref_omega, mes_omega );
       int duty = 1024 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, ref_omega, mes_omega );
-      setMDControlStatus(&md_status, ref_omega, mes_omega, duty);
+//      setMDControlStatus(&md_status, ref_omega, mes_omega, duty);
       
 //      count++;
 //      if(count>100){
 //          count = 0;
 //      xdev_out(putcUart);
-//      xprintf("ref:%d,mes:%d\n",(int)(ref_omega*1000),(int)(mes_omega*1000) );         
+////      rotate_Kp =0.1;
+//      xprintf("gain:%d\n",(unsigned int)(rotate_Kp*1000000));         
 //      }
 
 //      int duty = (int)getPID(rotate_Kp, rotate_Ki, rotate_Kd, ref_omega, mes_omega );

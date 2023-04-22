@@ -35,7 +35,8 @@
 
 /* 受信データ置換後*/
 typedef struct {
-    signed short Mot0OrderVel;
+    signed short Identifier;
+//    signed short Mot0OrderVel;
     signed short Mot1OrderVel;
     signed short Mot2OrderVel;
     signed short Mot3OrderVel;

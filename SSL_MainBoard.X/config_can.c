@@ -13,7 +13,8 @@
 #include "config_can.h"
 #include "BLDC_Drive_Control.h"
 #include "MotorDriverStatus.h"
-
+#include "xprintf.h"
+#include "uart_dsPIC33F.h"
 #define F_RX_CAN _LATA3
 /*
  * 
@@ -35,7 +36,7 @@ void test(void);
 void initTimer1(void);
 
 /*  変数    */
-OrderMotVel order;
+OrderMotVel order,can_order;
 #ifdef MAIN_BOARD_VER5
     char MD_Nomber;
 #endif
@@ -264,7 +265,7 @@ void __attribute__(( interrupt, auto_psv)) _C1Interrupt(void)
 
                
         if(C1RXFUL1bits.RXFUL10 == 1){
-                LED_CAN_ENABLE = 1;
+                LED_CAN_ENABLE = 1;//testじコメントアウト
                 checkRXCounter++;
                 exchangeOrderData();
 //                ecan1txmsgBuf[0][3] = (unsigned int)order.Mot0OrderVel;
@@ -281,11 +282,31 @@ void __attribute__(( interrupt, auto_psv)) _C1Interrupt(void)
 
 void exchangeOrderData(void)
 {
+//    xdev_out(putcUart);
     //もう少し汎用的にしたい
-    memcpy(&order,&ecan1rxmsgBuf[1][3],sizeof(order));
-    reqWheel_speed_can_1 = (short)order.Mot1OrderVel;
-    reqWheel_speed_can_2 = (short)order.Mot2OrderVel;
-    reqWheel_speed_can_0 = (short)order.Mot3OrderVel;
+    memcpy(&can_order,&ecan1rxmsgBuf[1][3],sizeof(can_order));
+    if(can_order.Identifier == 0xAAAA){
+//        LED_CAN_ENABLE =1;
+        order.Mot1OrderVel = can_order.Mot1OrderVel;
+        order.Mot2OrderVel = can_order.Mot2OrderVel;
+        order.Mot3OrderVel = can_order.Mot3OrderVel;
+        reqWheel_speed_can_1 = (short)order.Mot1OrderVel;
+        reqWheel_speed_can_2 = (short)order.Mot2OrderVel;
+        reqWheel_speed_can_0 = (short)order.Mot3OrderVel;
+//        setPIDGain(0.00006, 0.00006, 0.0); 
+    }
+    else if(can_order.Identifier == 0xBBBB){
+//        LED_CAN_ENABLE =0;
+        float order_gain[3];
+        order_gain[0] =  can_order.Mot1OrderVel*0.000001;
+        order_gain[1] =  can_order.Mot2OrderVel*0.000001;
+        order_gain[2] =  can_order.Mot3OrderVel*0.000001;
+//        order_gain[0] =  ((float)can_order.Mot3OrderVel/(float)(1<<15 ));
+//        order_gain[1] =  ((float)can_order.Mot3OrderVel/(float)(1<<15 ));
+//        order_gain[2] =  ((float)can_order.Mot3OrderVel/(float)(1<<15 ));
+        setPIDGain(order_gain[0],order_gain[1],order_gain[2]); 
+//        printf("p:%d, i:%d, d:%d\n", can_order.Mot1OrderVel, can_order.Mot2OrderVel, can_order.Mot3OrderVel);
+    }
 }
 
 signed short getOrder(void)
@@ -358,7 +379,7 @@ void __attribute__ ( (interrupt, no_auto_psv) ) _T1Interrupt( void )
         /*50msecに一回CANを受信しているか確認する*/
         if(checkRXCounter != checkRXCounter_last)
         {
-            //LED_CAN_ENABLE = 1;
+//            LED_CAN_ENABLE = 1;
         }
         else if(checkRXCounter == checkRXCounter_last)
         {
@@ -371,6 +392,6 @@ void __attribute__ ( (interrupt, no_auto_psv) ) _T1Interrupt( void )
 
     TMR1 = 0;
     T1CONbits.TON = 1;
-    LED_CAN_ENABLE = 0;
+    LED_CAN_ENABLE = 0;   //testじコメントアウト
     /* reset Timer 1 interrupt flag */
 }

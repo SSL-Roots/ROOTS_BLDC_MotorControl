@@ -53,7 +53,7 @@ int main(void){
 //        LATBbits.LATB1    =1;
 //        __delay_ms(1600);
 //        setReffernceAngularVelocity(-20.86*0.25);
-//        LATBbits.LATB1    =0;
+////        LATBbits.LATB1    =0;
 //        __delay_ms(1600);
                 
 //        for(log_cnt=0;log_cnt<LOG_NUM;log_cnt++){
