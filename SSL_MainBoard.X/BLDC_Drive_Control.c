@@ -78,6 +78,7 @@ static float mes_omega  = 0;
 //static int order_zero_count = 0;
 
 static int count = 0;
+int integ_duty=0;
 MDControlStatus md_status;
 
 //**************************************************************
@@ -94,7 +95,7 @@ extern void configBLDCSystem(void){
     configTimer2();
     configHSPWM();
 //    setPIDGain(0.00006, 0.00006, 0.0);  //初期
-    setPIDGain(0.009, 0.001, 0.001);
+    setPIDGain(0.02, 0.001, 0.001);
 //    setPIDGain(0.00001, 0.00006, 0.000);
 //    setPIDGain(0.006, 0.0001, 0.000);
 }
@@ -107,6 +108,12 @@ extern void configBLDCSystem(void){
 extern void driveBLDCSystem(void){
 //    int duty = 1024.0 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, (int)ref_omega, mes_omega );
       int duty = 1024 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, ref_omega, mes_omega );
+      integ_duty += duty;
+      if(integ_duty > 1024){
+          integ_duty = 1024;
+      }else if(integ_duty <-1024){
+          integ_duty =-1024;
+      }
 //      setMDControlStatus(&md_status, ref_omega, mes_omega, duty);
       
 //      count++;
@@ -145,11 +152,11 @@ extern void driveBLDCSystem(void){
 //      }
 
     int rotate;
-    if(duty > 0){
+    if(integ_duty > 0){
         rotate  = ROTATE_CW;
     }else{
         rotate  = ROTATE_CCW;
-        duty    = -1*duty;
+        integ_duty    = -1*integ_duty;
     }
     
     //過電流検知
@@ -163,9 +170,9 @@ extern void driveBLDCSystem(void){
 //        LED_DEBUG_FLAG_1 = 0;
 //    }
     
-    Output_Duty = duty;
+    Output_Duty = integ_duty;
     
-    driveTreePhaseInverter( getHallPosition(), (unsigned int) duty, rotate );
+    driveTreePhaseInverter( getHallPosition(), (unsigned int) integ_duty, rotate );
 //    driveTreePhaseInverter( getHallPosition(), 100, rotate);
     stateFlagDriving( 1 );
 }

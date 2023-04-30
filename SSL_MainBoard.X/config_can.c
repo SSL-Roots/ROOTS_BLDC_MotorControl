@@ -298,7 +298,7 @@ void exchangeOrderData(void)
     else if(can_order.Identifier == 0xBBBB){
 //        LED_CAN_ENABLE =0;
         float order_gain[3];
-        order_gain[0] =  can_order.Mot1OrderVel*0.000001;
+        order_gain[0] =  can_order.Mot1OrderVel*0.0001;
         order_gain[1] =  can_order.Mot2OrderVel*0.000001;
         order_gain[2] =  can_order.Mot3OrderVel*0.000001;
 //        order_gain[0] =  ((float)can_order.Mot3OrderVel/(float)(1<<15 ));
