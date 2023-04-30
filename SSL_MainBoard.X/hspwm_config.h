@@ -35,7 +35,7 @@ unsigned int iocon_conf     =   PWM_H_PIN_EN |          //PWMxHを使う
                                 PWM_PIN_SWAP_EN    |   //PWMxLとPWMxHを入れ替える
                                 PWM_OR_OVRDAT_NXT_CLK;  //オーバーライドの周期
 
-unsigned int phase1_conf    =   1000;   //PWMxHの周期
+unsigned int phase1_conf    =   1024;   //PWMxHの周期
 
 unsigned int trgcon_donf    =   PWM_TRIG_EVENT1 |       //トリガーイベントを毎回発生
                                 PWM_TRIG_PS0;           //

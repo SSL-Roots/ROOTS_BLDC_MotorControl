@@ -78,7 +78,8 @@ static float mes_omega  = 0;
 //static int order_zero_count = 0;
 
 static int count = 0;
-int integ_duty=0,pwm_out_duty;
+static float integ_duty=0;
+static int pwm_out_duty;
 MDControlStatus md_status;
 
 //**************************************************************
@@ -95,7 +96,7 @@ extern void configBLDCSystem(void){
     configTimer2();
     configHSPWM();
 //    setPIDGain(0.00006, 0.00006, 0.0);  //初期
-    setPIDGain(0.00001, 0.0, 0.0);
+    setPIDGain(0.001, 0.000001, 0.0);
 //    setPIDGain(0.00001, 0.00006, 0.000);
 //    setPIDGain(0.006, 0.0001, 0.000);
 }
@@ -107,7 +108,7 @@ extern void configBLDCSystem(void){
 //**************************************************************
 extern void driveBLDCSystem(void){
 //    int duty = 1024.0 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, (int)ref_omega, mes_omega );
-      int duty = 1024 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, ref_omega, mes_omega );
+      float duty = 1024 * getPID(rotate_Kp, rotate_Ki, rotate_Kd, ref_omega, mes_omega );
       integ_duty += duty;
       if(integ_duty > 1024){
           integ_duty = 1024;
@@ -154,10 +155,10 @@ extern void driveBLDCSystem(void){
     int rotate;
     if(integ_duty > 0){
         rotate  = ROTATE_CW;
-        pwm_out_duty = integ_duty;
+        pwm_out_duty = (int)integ_duty;
     }else{
         rotate  = ROTATE_CCW;
-        pwm_out_duty    = -1*integ_duty;
+        pwm_out_duty    = -1*(int)integ_duty;
     }
     
     //過電流検知

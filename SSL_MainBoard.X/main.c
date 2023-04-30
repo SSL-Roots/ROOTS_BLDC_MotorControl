@@ -37,11 +37,11 @@ int main(void){
 
     while(1){
         order_signed = getOrder();
-        reqWheel_speed = order_signed / 10;
+        reqWheel_speed = order_signed / 100;
         resWheel_speed = getWheelAngularVelocity();
         
         
-        order_float = (float)order_signed*0.1;
+        order_float = (float)order_signed*0.01;
         order_float_int = (int)(order_float * 1000);
         
         setReffernceAngularVelocity(order_float);
