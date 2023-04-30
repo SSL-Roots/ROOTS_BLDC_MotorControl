@@ -41,7 +41,7 @@ int main(void){
         resWheel_speed = getWheelAngularVelocity();
         
         
-        order_float = (float)order_signed * 0.05;
+        order_float = (float)order_signed;
         order_float_int = (int)(order_float * 1000);
         
         setReffernceAngularVelocity(order_float);
